@@ -17,102 +17,88 @@ These schemas are designed to be:
 
 ## Repositories
 
-### [`value-models`](https://github.com/the-value-project/value-models)
+### [`value-models`](https://github.com/The-Value-Project/value-models)
 
 Schemas for understanding and quantifying customer value.
 
-| Schema | Description |
-|--------|-------------|
-| `ValueModel` | Canonical Value Model (CVM) — defines variables, value drivers, equations, and tiers/modules for a product's value proposition |
-| `CustomerVariables` | Customer-specific variable estimates with evidence sources, value driver applicability, and risk adjustments (execution risk + attribution percentage). Extensible to support additional customer intelligence fields. |
+| Schema | Version | Description |
+|---|---|---|
+| `ValueModel` | 1.0.0 | Canonical Value Model — variables, value drivers, equations, and tier/module catalog |
+| `CustomerVariables` | 1.0.0 | Customer-specific variable estimates, driver applicability, and risk adjustments |
 
-These schemas answer the question: *"What is this solution worth to this specific customer, and why?"*
+These schemas answer: *"What is this solution worth to this specific customer, and why?"*
 
-→ [Browse the value-models repo](https://github.com/the-value-project/value-models)
+**Schemas:** Apache-2.0 · **Specifications:** CC BY 4.0
+
+→ [Browse value-models](https://github.com/The-Value-Project/value-models)
 
 ---
 
-### [`pricing-models`](https://github.com/the-value-project/pricing-models)
+### [`pricing-models`](https://github.com/The-Value-Project/pricing-models)
 
 Schemas and a full specification for sales-led pricing, deal configuration, and invoice generation.
 
-| Schema | Description |
-|--------|-------------|
-| `PricingModel` (PMS v1.4) | Structured, computable representation of a vendor's pricing — products, modules, tiers, plans, bundles, discounts, credit types, business rules |
-| `DealConfiguration` | Customer-specific deal referencing a PMS instance — created by a salesperson or LLM |
-| `InvoiceStatement` | Computed pricing output with full audit trail — line items, adjustments, entitlement summary |
+| Schema | Version | Description |
+|---|---|---|
+| `PricingModel` | 1.0.0 | Vendor's complete pricing — modules, tiers, plans, discounts, credit types, business rules |
+| `DealConfiguration` | 1.0.0 | Customer-specific deal referencing a PricingModel instance |
+| `InvoiceStatement` | 1.0.0 | Deterministic, auditable computed output — line items, adjustments, entitlement summary |
 
-These schemas, together with the accompanying specification, answer the question: *"Given what this customer wants to buy, what do they owe, and why?"*
+These schemas answer: *"Given what this customer wants to buy, what do they owe, and why?"*
 
-→ [Browse the pricing-models repo](https://github.com/the-value-project/pricing-models)
+**Schemas:** Apache-2.0 · **Specifications:** CC BY 4.0
+
+→ [Browse pricing-models](https://github.com/The-Value-Project/pricing-models)
 
 ---
 
 ## How the Schemas Relate
 
 ```
-ValueModel ───────────────────────────────────────────────────────────┐
-  Defines variables, drivers, equations, tiers/modules                │
-                                                                       │
-CustomerVariables ─────────────────────────────────────────────────┐  │
-  Variable estimates (with confidence + sources)                    │  │
-  Driver applicability + risk adjustments                           │  │
-  References: ValueModel variables + value drivers                  │  │
-                                                                    ▼  ▼
-                                               [Quantified Value & Deal Recommendation]
-                                                                       │
-                                                                       ▼
-PricingModel (PMS) ────────────────────────────────────────────────────┐
-  Vendor's product catalog, modules, tiers, plans, rules              │
-  tiers_and_modules referenced by ValueModel                          │
-                                                                       │
-DealConfiguration ─────────────────────────────────────────────────────┤
-  Selects from PMS by ID (product_id, tier_id, plan_id, etc.)         │
-  References: PricingModel.model_id                                    │
-                                                                       │
-                                                                       ▼
-InvoiceStatement ──────────────────────────────────────────────────────┘
-  Computed output: line items, adjustments, entitlements, totals
-  References: DealConfiguration.config_id
+ValueModel          defines variables, drivers, equations, tier/module catalog
+      │
+CustomerVariables   customer-specific estimates + risk adjustments → ROI + tier recommendation
+      │                                                                        │
+      │                                                                        ▼
+PricingModel        vendor's full pricing catalog
+      │
+DealConfiguration   customer's deal — selects tier, quantities, discounts
+      │
+InvoiceStatement    deterministic computed output — fully auditable
 ```
 
-The value schemas inform *which* product tier and modules best match a customer's needs and at what ROI. The pricing schemas compute the price of that configuration.
+The cross-repo join key: `ValueModel.tiers_and_modules[].name` corresponds to `PricingModel.products[].tiers[].name`. A customer value analysis recommends a tier; that tier feeds directly into a `DealConfiguration`.
+
+---
+
+## Licensing
+
+| Content | License | SPDX |
+|---|---|---|
+| JSON schemas (`schemas/`) | Apache License 2.0 | `Apache-2.0` |
+| Specifications, docs, examples (`spec/`, `README.md`, `examples/`) | Creative Commons Attribution 4.0 | `CC-BY-4.0` |
+
+Each repo contains `LICENSE-CODE` (Apache 2.0 full text) and `LICENSE-DOCS` (CC BY 4.0 full text).
 
 ---
 
 ## Design Principles
 
-1. **Structure over equations.** Price and value emerge from declared objects and primitives — no free-form expressions.
-2. **Plain-text business rules.** Every constraint is stated in natural language interpretable by both humans and LLMs.
+1. **Structure over expressions.** Price and value emerge from declared objects and primitives — no free-form expressions.
+2. **Plain-text business rules.** Every constraint is stated in natural language, interpretable by humans and LLMs alike.
 3. **Deterministic evaluation.** Identical inputs produce identical results.
 4. **Auditability.** Every invoice line and every value claim traces to a source field.
-5. **Extensible entitlements.** Any unit of value (seats, credits, API calls, tokens) is modeled generically via `credit_types` — never as hardcoded fields.
+5. **Generic entitlements.** Any unit of value (seats, credits, API calls, tokens) is modeled via `credit_types` — never as hardcoded fields.
 6. **Separation of concerns.** The model defines what's available. The configuration captures what was chosen. The output records what was computed.
-7. **Extensibility by design.** Core schemas define the required standard. Implementations may add fields — or build richer schemas that extend the standard — without breaking conformance.
-8. **Self-documenting.** Every schema field carries a description sufficient for an LLM or engineer to understand and apply it without external documentation.
-9. **LLM-native.** Schemas are designed as structured output targets for frontier LLMs (GPT-4o strict mode, Anthropic tool use) and as context documents for agentic workflows.
-
----
-
-## Schema Versioning
-
-| Schema | Current Version | Stability |
-|--------|----------------|-----------|
-| `ValueModel` | 1.0 | Implementation-Ready |
-| `CustomerVariables` | 1.0 | Implementation-Ready |
-| `PricingModel` (PMS) | 1.4 | Implementation-Ready |
-| `DealConfiguration` | 1.4 | Implementation-Ready |
-| `InvoiceStatement` | 1.4 | Implementation-Ready |
-
-Versions follow `MAJOR.MINOR`. Breaking changes increment MAJOR. Additive, backward-compatible changes increment MINOR.
+7. **Self-documenting.** Every schema field carries a description sufficient for an LLM or engineer to apply it without external documentation.
 
 ---
 
 ## Contributing
 
-The Value Project is in early-stage development. If you are building value-selling tooling, sales CPQ systems, or AI-assisted deal workflows, we welcome feedback on the schemas and specifications.
+Issues and pull requests are welcome in the relevant repository. Please read the `CONTRIBUTING.md` in each repo before opening a PR — in particular, schema contributions are licensed Apache-2.0 and specification contributions are licensed CC BY 4.0.
 
-Please open issues in the relevant repository or reach out via [valueiq.ai](https://valueiq.ai).
+Open issues: [value-models](https://github.com/The-Value-Project/value-models/issues) · [pricing-models](https://github.com/The-Value-Project/pricing-models/issues)
 
 ---
 
