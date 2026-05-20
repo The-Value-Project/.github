@@ -25,6 +25,7 @@ Schemas for understanding and quantifying customer value.
 |---|---|---|
 | `ValueModel` | 1.0.0 | Canonical Value Model — variables, value drivers, equations, and tier/module catalog |
 | `CustomerVariables` | 1.0.0 | Customer-specific variable estimates, driver applicability, and risk adjustments |
+| `BenchmarkClaims` | 1.0.0 | Vendor-asserted improvement claim benchmarks — median, min, max with evidentiary basis |
 
 These schemas answer: *"What is this solution worth to this specific customer, and why?"*
 
@@ -49,6 +50,21 @@ These schemas answer: *"Given what this customer wants to buy, what do they owe,
 **Schemas:** Apache-2.0 · **Specifications:** CC BY 4.0
 
 → [Browse pricing-models](https://github.com/The-Value-Project/pricing-models)
+
+---
+
+## Discoverability
+
+Vendors publishing conforming value model pages and pricing pages should follow the discoverability specification to ensure both humans and LLM pipelines can locate the machine-readable documents reliably.
+
+**[`spec/discoverability.md`](https://github.com/The-Value-Project/spec/blob/main/discoverability.md)** covers four layers:
+
+- Visible links on product and pricing pages (in a labelled "For buyers and AI tools" section)
+- `<link rel="alternate" type="text/markdown">` elements in HTML `<head>` metadata
+- `llms.txt` entries at the domain root, with inline schema and LLM interpreter references
+- `sitemap.xml` and `robots.txt` hygiene for `.md` and `.json` paths
+
+→ [Read the discoverability spec](https://github.com/The-Value-Project/spec/blob/main/discoverability.md)
 
 ---
 
@@ -91,6 +107,7 @@ Each repo contains `LICENSE-CODE` (Apache 2.0 full text) and `LICENSE-DOCS` (CC 
 5. **Generic entitlements.** Any unit of value (seats, credits, API calls, tokens) is modeled via `credit_types` — never as hardcoded fields.
 6. **Separation of concerns.** The model defines what's available. The configuration captures what was chosen. The output records what was computed.
 7. **Self-documenting.** Every schema field carries a description sufficient for an LLM or engineer to apply it without external documentation.
+8. **Discoverable by design.** Machine-readable pages follow a standard discoverability pattern — visible links, HTML `<link>` metadata, and `llms.txt` entries — so LLM pipelines can locate and interpret them without human guidance.
 
 ---
 
